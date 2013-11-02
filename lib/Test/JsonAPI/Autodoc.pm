@@ -13,7 +13,7 @@ use Test::JsonAPI::Autodoc::Markdown;
 
 our @EXPORT = qw/describe http_ok set_documents_path set_template/;
 
-our $VERSION = "0.03";
+our $VERSION = "0.04";
 
 my $in_describe;
 my $results;
@@ -126,7 +126,6 @@ sub _parse_json_hash {
 
     my @parameters;
 
-    # TODO NOT GOOD (should be extracted to each method)
     if (ref $request_parameters eq 'HASH') {
         my @keys = keys %$request_parameters;
         @keys = sort {$a cmp $b} @keys;
@@ -249,8 +248,6 @@ The example of F<test.t> is as follows.
 
 The following markdown document are outputted after execution of a test.
 Document will output to F<$project_root/docs/test.md> on default setting.
-($project_root means the directory on which F<cpanfile> discovered while going back to a root directory from a test script is put.
-Therefore, it is necessary to put F<cpanfile> on a project root.)
 
 =begin markdown
 
@@ -324,6 +321,14 @@ Set the original template. This method require the string.
 Please refer to L<CUSTOM TEMPLATE> for details.
 
 =back
+
+
+=head1 REQUIREMENTS
+
+Generated document will output to F<$project_root/docs/> on default setting.
+$project_root means the directory on which F<cpanfile> discovered while going
+back to a root directory from a test script is put.
+Therefore, B<it is necessary to put F<cpanfile> on a project root>.
 
 
 =head1 CONFIGURATION AND ENVIRONMENT
