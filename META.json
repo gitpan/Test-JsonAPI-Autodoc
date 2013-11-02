@@ -1,10 +1,10 @@
 {
-   "abstract" : "Test API response and auto generate API documents",
+   "abstract" : "Test JSON API response and auto generate API documents",
    "author" : [
       "moznion <moznion@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.8.0",
+   "generated_by" : "Minilla/v0.8.1",
    "license" : [
       "perl_5"
    ],
@@ -72,7 +72,7 @@
    "provides" : {
       "Test::JsonAPI::Autodoc" : {
          "file" : "lib/Test/JsonAPI/Autodoc.pm",
-         "version" : "0.01"
+         "version" : "0.02"
       },
       "Test::JsonAPI::Autodoc::Markdown" : {
          "file" : "lib/Test/JsonAPI/Autodoc/Markdown.pm"
@@ -88,9 +88,9 @@
       },
       "homepage" : "https://github.com/moznion/Test-JsonAPI-Autodoc",
       "repository" : {
-         "url" : "git://github.com/moznion/Test-JsonAPI-Autodoc",
+         "url" : "git://github.com/moznion/Test-JsonAPI-Autodoc.git",
          "web" : "https://github.com/moznion/Test-JsonAPI-Autodoc"
       }
    },
-   "version" : "0.01"
+   "version" : "0.02"
 }

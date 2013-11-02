@@ -4,6 +4,8 @@ LICENSE
 META.json
 README.md
 cpanfile
+eg/autodoc.t
+eg/docs/autodoc.md
 lib/Test/JsonAPI/Autodoc.pm
 lib/Test/JsonAPI/Autodoc/Markdown.pm
 lib/Test/JsonAPI/Autodoc/Path.pm
@@ -14,6 +16,8 @@ t/02_basic.t
 t/03_nested_hash.t
 t/04_array.t
 t/05_non_json_request.t
+t/06_own_template.t
+t/07_http_ok_is_not_in_describe.t
 xt/00_document.t
 xt/local_functions.t
 xt/perlcritic.t

@@ -3,7 +3,6 @@
 use strict;
 use warnings;
 use utf8;
-use FindBin;
 use HTTP::Request::Common;
 use HTTP::Response;
 use Path::Tiny;
@@ -13,7 +12,7 @@ use Test::More;
 use Test::JsonAPI::Autodoc;
 
 BEGIN {
-    $ENV{TEST_MORE_AUTODOC} = 1;
+    $ENV{TEST_JSONAPI_AUTODOC} = 1;
 }
 
 my $tempdir = Path::Tiny->tempdir;

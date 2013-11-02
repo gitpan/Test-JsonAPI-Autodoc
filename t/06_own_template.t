@@ -17,6 +17,10 @@ BEGIN {
 
 my $tempdir = Path::Tiny->tempdir;
 set_documents_path($tempdir);
+set_template(<<'...'
+## <: $description :>
+...
+);
 
 my $ok_res = HTTP::Response->new(200);
 $ok_res->content('{ "message" : "success" }');
@@ -37,9 +41,6 @@ subtest 'Non JSON request parameters' => sub {
 $filename .= '.md';
 my $fh = path("$tempdir/$filename")->openr_utf8;
 
-chomp (my $generated_at_line = <$fh>);
-<$fh>; # blank
-like $generated_at_line, qr/generated at: \d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d/, 'generated at ok';
 my $got      = do { local $/; <$fh> };
 my $expected = do { local $/; <DATA> };
 is $got, $expected, 'result ok';
@@ -47,28 +48,3 @@ is $got, $expected, 'result ok';
 done_testing;
 __DATA__
 ## POST /foobar
-
-get 200 ok
-
-### parameters
-
-__application/x-www-form-urlencoded__
-
-- `id`
-- `message`
-
-### request
-
-POST /foobar
-
-### response
-
-```
-Status: 200
-Response:
-{
-   "message" : "success"
-}
-
-```
-

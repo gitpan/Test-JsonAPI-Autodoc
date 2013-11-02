@@ -29,6 +29,18 @@ Test::Mock::LWP::Conditional->stub_request(
     "/bad"    => $bad_res,
 );
 
+subtest '`http_ok` is not in `describe`' => sub {
+    my $req = POST '/bad';
+    $req->header('Content-Type' => 'application/json');
+    $req->content(q{
+        {
+            "id": 1,
+            "message": "blah blah"
+        }
+    });
+    http_ok($req, 400, "get 400 ok");
+};
+
 subtest '200 OK' => sub {
     describe 'POST /foobar' => sub {
         my $req = POST '/foobar';
@@ -44,20 +56,6 @@ subtest '200 OK' => sub {
 
 };
 
-subtest '400 Bad Request' => sub {
-    describe 'POST /bad' => sub {
-        my $req = POST '/bad';
-        $req->header('Content-Type' => 'application/json');
-        $req->content(q{
-            {
-                "id": 1,
-                "message": "blah blah"
-            }
-        });
-        http_ok($req, 400, "get 400 ok");
-    };
-};
-
 (my $filename = path($0)->basename) =~ s/\.t$//;
 $filename .= '.md';
 my $fh = path("$tempdir/$filename")->openr_utf8;
@@ -67,7 +65,7 @@ chomp (my $generated_at_line = <$fh>);
 like $generated_at_line, qr/generated at: \d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d/, 'generated at ok';
 my $got      = do { local $/; <$fh> };
 my $expected = do { local $/; <DATA> };
-is $got, $expected, 'result ok';
+is $got, $expected, 'Not generate document if `http_ok` is called at outside of `describe`';
 
 done_testing;
 __DATA__
@@ -94,30 +92,6 @@ Response:
 {
    "message" : "success"
 }
-
-```
-
-## POST /bad
-
-get 400 ok
-
-### parameters
-
-__application/json__
-
-- `id`: Number (e.g. 1)
-- `message`: String (e.g. "blah blah")
-
-### request
-
-POST /bad
-
-### response
-
-```
-Status: 400
-Response:
-400 URL must be absolute
 
 ```
 
