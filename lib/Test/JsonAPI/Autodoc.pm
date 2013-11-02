@@ -13,7 +13,7 @@ use Test::JsonAPI::Autodoc::Markdown;
 
 our @EXPORT = qw/describe http_ok set_documents_path set_template/;
 
-our $VERSION = "0.05";
+our $VERSION = "0.06";
 
 my $in_describe;
 my $results;
@@ -249,8 +249,6 @@ The example of F<test.t> is as follows.
 The following markdown document are outputted after execution of a test.
 Document will output to F<$project_root/docs/test.md> on default setting.
 
-=begin text
-
     generated at: 2013-11-02 16:56:59
 
     ## POST /foo
@@ -279,13 +277,7 @@ Document will output to F<$project_root/docs/test.md> on default setting.
 
     ```
 
-=end text
-
-=begin html
-
-Please also refer to <a href="https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg">examples</a>.
-
-=end html
+Please also refer to example (L<https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg>).
 
 
 =head1 METHODS
@@ -380,8 +372,6 @@ Available variables are the followings.
 
 =head3 Example
 
-=begin text
-
     : if $generated_at {
     generated at: <: $generated_at :>
 
@@ -422,8 +412,6 @@ Available variables are the followings.
     <: $result.response :>
     : }
     ```
-
-=end text
 
 Template needs to be written by L<Text::Xslate::Syntax::Kolon> as looking.
 
