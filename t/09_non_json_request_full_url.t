@@ -18,30 +18,19 @@ BEGIN {
 my $tempdir = Path::Tiny->tempdir;
 set_documents_path($tempdir);
 
-my $res = HTTP::Response->new(200);
-$res->content('{ "message" : "success" }');
-$res->content_type('application/json');
+my $ok_res = HTTP::Response->new(200);
+$ok_res->content('{ "message" : "success" }');
+$ok_res->content_type('application/json');
 
 Test::Mock::LWP::Conditional->stub_request(
-    "/foobar" => $res
+    "http://localhost:3000/foobar" => $ok_res,
 );
 
-describe 'POST /foobar' => sub {
-    my $req = POST '/foobar';
-    $req->header('Content-Type' => 'application/json');
-    $req->content(q{
-        {
-            "id": 1,
-            "parent": {
-                "child": {
-                    "article_id": 123,
-                    "text": "foobar"
-                }
-            },
-            "message": "hello"
-        }
-    });
-    http_ok($req, 200, "get message");
+subtest 'Non JSON request parameters' => sub {
+    describe 'POST /foobar' => sub {
+        my $req = POST 'http://localhost:3000/foobar', [ id => 1, message => 'blah blah' ];
+        http_ok($req, 200, "get 200 ok");
+    };
 };
 
 (my $filename = path($0)->basename) =~ s/\.t$//;
@@ -59,18 +48,18 @@ done_testing;
 __DATA__
 ## POST /foobar
 
-get message
+get 200 ok
+
+### Target Server
+
+http://localhost:3000
 
 ### Parameters
 
-__application/json__
+__application/x-www-form-urlencoded__
 
-- `id`: Number (e.g. 1)
-- `message`: String (e.g. "hello")
-- `parent`: JSON
-    - `child`: JSON
-        - `article_id`: Number (e.g. 123)
-        - `text`: String (e.g. "foobar")
+- `id`
+- `message`
 
 ### Request
 

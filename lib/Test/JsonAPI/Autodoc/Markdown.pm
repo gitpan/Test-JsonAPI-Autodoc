@@ -62,7 +62,17 @@ generated at: <: $generated_at :>
 : for $results -> $result {
 <: $result.note :>
 
-### parameters
+: if $result.server {
+### Target Server
+
+<: $result.server :>
+: if $result.is_plack_app {
+
+(Plack application)
+: }
+
+:}
+### Parameters
 
 : if $result.parameters {
     : if $result.content_type {
@@ -77,15 +87,15 @@ __<: $result.content_type :>__
 Not required
 : }
 
-### request
+### Request
 
-<: $result.method:> <: $result.location :>
+<: $result.method:> <: $result.path :>
 : if $result.query {
 
     <: $result.query :>
 : }
 
-### response
+### Response
 
 ```
 Status: <: $result.status :>

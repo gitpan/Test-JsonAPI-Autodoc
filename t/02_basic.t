@@ -25,13 +25,13 @@ $ok_res->content_type('application/json');
 my $bad_res = HTTP::Response->new(400);
 
 Test::Mock::LWP::Conditional->stub_request(
-    "/foobar" => $ok_res,
+    "http://localhost:3000/foobar" => $ok_res,
     "/bad"    => $bad_res,
 );
 
 subtest '200 OK' => sub {
     describe 'POST /foobar' => sub {
-        my $req = POST '/foobar';
+        my $req = POST 'http://localhost:3000/foobar';
         $req->header('Content-Type' => 'application/json');
         $req->content(q{
             {
@@ -75,18 +75,22 @@ __DATA__
 
 get message ok
 
-### parameters
+### Target Server
+
+http://localhost:3000
+
+### Parameters
 
 __application/json__
 
 - `id`: Number (e.g. 1)
 - `message`: String (e.g. "blah blah")
 
-### request
+### Request
 
 POST /foobar
 
-### response
+### Response
 
 ```
 Status: 200
@@ -101,18 +105,18 @@ Response:
 
 get 400 ok
 
-### parameters
+### Parameters
 
 __application/json__
 
 - `id`: Number (e.g. 1)
 - `message`: String (e.g. "blah blah")
 
-### request
+### Request
 
 POST /bad
 
-### response
+### Response
 
 ```
 Status: 400
