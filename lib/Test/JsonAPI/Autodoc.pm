@@ -6,10 +6,10 @@ use parent qw/Exporter/;
 use Carp;
 use Test::More ();
 use Scope::Guard;
-use JSON;
 use LWP::UserAgent;
-use URL::Encode qw/url_params_flat/;
 use Test::JsonAPI::Autodoc::Markdown;
+use Test::JsonAPI::Autodoc::Request;
+use Test::JsonAPI::Autodoc::Response;
 
 our @EXPORT = qw/
     describe
@@ -19,7 +19,7 @@ our @EXPORT = qw/
     set_template
 /;
 
-our $VERSION = "0.10";
+our $VERSION = "0.11";
 
 my $in_describe;
 my $results;
@@ -60,7 +60,8 @@ sub describe {
     my $result = Test::More::subtest($description => $coderef);
 
     if ($result && $results && $ENV{TEST_JSONAPI_AUTODOC}) {
-        Test::JsonAPI::Autodoc::Markdown->new($output_path, $template)->generate($description, $results, $first_time);
+        my $markdown = Test::JsonAPI::Autodoc::Markdown->new($output_path, $template);
+        $markdown->generate($description, $results, $first_time);
     }
 }
 
@@ -77,19 +78,6 @@ sub plack_ok {
 sub _api_ok {
     my ($req, $expected_code, $note, $plack_app) = @_;
 
-    unless ($req->isa('HTTP::Request')) {
-        croak 'Request must be instance of HTTP::Request or subclass of that';
-    }
-
-    my $request_body = $req->content;
-    my $content_type = $req->content_type;
-
-    my $is_json = 0;
-    if($content_type =~ m!^application/json!) {
-        $request_body = to_json(from_json($req->decoded_content), { pretty => 1 });
-        $is_json = 1;
-    }
-
     my $res;
     my $is_plack_app = 0;
     if ($plack_app) { # for Plack::Test
@@ -102,107 +90,28 @@ sub _api_ok {
     }
 
     my $result = Test::More::is $res->code, $expected_code;
-
     return unless $result;
     return unless $in_describe;
 
-    my $response_body = $res->content;
-    if($res->content_type =~ m!^application/json!) {
-        $response_body = to_json(from_json($res->decoded_content), { pretty => 1 });
-    }
+    my $parsed_request  = Test::JsonAPI::Autodoc::Request->new->parse($req);
+    my $parsed_response = Test::JsonAPI::Autodoc::Response->new->parse($res);
 
-    my $target_server = '';
-    if ($req->uri->scheme && $req->uri->authority) {
-        $target_server = $req->uri->scheme . '://' . $req->uri->authority;
-    }
+    push @$results, {
+        note                  => $note,
 
-    push @$results, +{
-        note          => $note,
+        path                  => $parsed_request->{path},
+        server                => $parsed_request->{server},
+        method                => $parsed_request->{method},
+        query                 => $parsed_request->{query},
+        request_content_type  => $parsed_request->{content_type},
+        request_parameters    => $parsed_request->{parameters},
+        is_plack_app          => $is_plack_app,
 
-        path          => $req->uri->path,
-        server        => $target_server,
-        method        => $req->method,
-        query         => $req->uri->query,
-        content_type  => $content_type,
-        parameters    => _parse_request_parameters($request_body, $is_json),
-        is_plack_app  => $is_plack_app,
-
-        status        => $expected_code,
-        response      => $response_body,
+        status                => $expected_code,
+        response_body         => $parsed_response->{body},
+        response_content_type => $parsed_response->{content_type},
     };
 }
-
-sub _parse_request_parameters {
-    my ($request_parameters, $is_json) = @_;
-
-    my $parameters;
-    if($is_json) {
-        $request_parameters = JSON::decode_json($request_parameters);
-        $parameters = _parse_json_hash($request_parameters);
-    }
-    else {
-        my @parameters = @{url_params_flat($request_parameters)};
-        my @keys = @parameters[ grep { ! ($_ % 2) } 0 .. $#parameters ];
-        @parameters = map { "- `$_`" } @keys;
-        $parameters = \@parameters;
-    }
-
-    return $parameters;
-}
-
-sub _parse_json_hash {
-    my ($request_parameters, $layer) = @_;
-
-    $layer = 0 unless $layer;
-
-    my $indent = '    ' x $layer;
-
-    my @parameters;
-
-    if (ref $request_parameters eq 'HASH') {
-        my @keys = keys %$request_parameters;
-        @keys = sort {$a cmp $b} @keys;
-        foreach my $key (@keys) {
-            my $value = $request_parameters->{$key};
-            if ($value =~ /^\d/) {
-                push @parameters, "$indent- `$key`: Number (e.g. $value)";
-            }
-            elsif (ref $value eq 'HASH') {
-                push @parameters, "$indent- `$key`: JSON";
-                push @parameters, @{_parse_json_hash($value, ++$layer)};
-            }
-            elsif (ref $value eq 'ARRAY') {
-                push @parameters, "$indent- `$key`: Array";
-                push @parameters, @{_parse_json_hash($value, ++$layer)};
-            }
-            else {
-                push @parameters, qq{$indent- `$key`: String (e.g. "$value")};
-            }
-        }
-    }
-    else {
-        foreach my $value (@$request_parameters) {
-            if ($value =~ /^\d/) {
-                push @parameters, "$indent- Number (e.g. $value)";
-            }
-            elsif (ref $value eq 'HASH') {
-                push @parameters, "$indent- Anonymous JSON";
-                push @parameters, @{_parse_json_hash($value, ++$layer)};
-            }
-            elsif (ref $value eq 'ARRAY') {
-                push @parameters, "$indent- Anonymous Array";
-                push @parameters, @{_parse_json_hash($value, ++$layer)};
-            }
-            else {
-                push @parameters, qq{$indent- String (e.g. "$value")};
-            }
-            $layer--;
-        }
-    }
-
-    return \@parameters;
-}
-
 1;
 __END__
 
@@ -258,8 +167,8 @@ Test::JsonAPI::Autodoc - Test JSON API response and auto generate API documents
         $req->header('Content-Type' => 'application/json');
         $req->content(q{
             {
-            "id": 1,
-            "message": "blah blah"
+                "id": 1,
+                "message": "blah blah"
             }
         });
         plack_ok($test_app, $req, 200, "get message ok");
@@ -325,7 +234,7 @@ The example of F<test.t> is as follows.
 The following markdown document are outputted after execution of a test.
 Document will output to F<$project_root/docs/test.md> on default setting.
 
-    generated at: 2013-11-03 22:29:06
+    generated at: 2013-11-04 22:41:10
 
     ## POST /foo
 
@@ -349,7 +258,8 @@ Document will output to F<$project_root/docs/test.md> on default setting.
     ### Response
 
     ```
-    Status: 200
+    Status:       200
+    Content-Type: application/json
     Response:
     {
        "message" : "success"
@@ -446,13 +356,17 @@ Available variables are the followings.
 
 =item * result.query
 
-=item * result.content_type
+=item * result.request_content_type
 
-=item * result.parameters
+=item * result.request_parameters
+
+=item * result.is_plack_app
 
 =item * result.status
 
-=item * result.response
+=item * result.response_body
+
+=item * result.response_content_type
 
 =back
 
@@ -481,12 +395,12 @@ Available variables are the followings.
     :}
     ### Parameters
 
-    : if $result.parameters {
-        : if $result.content_type {
-    __<: $result.content_type :>__
+    : if $result.request_parameters {
+        : if $result.request_content_type {
+    __<: $result.request_content_type :>__
 
         : }
-    : for $result.parameters -> $parameter {
+    : for $result.request_parameters -> $parameter {
     <: $parameter :>
     : }
     : }
@@ -505,13 +419,25 @@ Available variables are the followings.
     ### Response
 
     ```
-    Status: <: $result.status :>
+    Status:       <: $result.status :>
+    Content-Type: <: $result.response_content_type :>
     Response:
-    <: $result.response :>
+    <: $result.response_body :>
     : }
     ```
 
 Template needs to be written by L<Text::Xslate::Syntax::Kolon> as looking.
+
+
+=head1 FAQ
+
+=head4 Does this module correspond to JSON-RPC?
+
+Yes. It can use as L<https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/json_rpc.t>.
+
+=head4 Can methods of L<Test::More> (e.g. C<subtest()>) be called in C<describe()>?
+
+Yes, of course!
 
 
 =head1 INSPIRED

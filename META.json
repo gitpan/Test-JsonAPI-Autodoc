@@ -72,13 +72,19 @@
    "provides" : {
       "Test::JsonAPI::Autodoc" : {
          "file" : "lib/Test/JsonAPI/Autodoc.pm",
-         "version" : "0.10"
+         "version" : "0.11"
       },
       "Test::JsonAPI::Autodoc::Markdown" : {
          "file" : "lib/Test/JsonAPI/Autodoc/Markdown.pm"
       },
       "Test::JsonAPI::Autodoc::Path" : {
          "file" : "lib/Test/JsonAPI/Autodoc/Path.pm"
+      },
+      "Test::JsonAPI::Autodoc::Request" : {
+         "file" : "lib/Test/JsonAPI/Autodoc/Request.pm"
+      },
+      "Test::JsonAPI::Autodoc::Response" : {
+         "file" : "lib/Test/JsonAPI/Autodoc/Response.pm"
       }
    },
    "release_status" : "stable",
@@ -92,5 +98,5 @@
          "web" : "https://github.com/moznion/Test-JsonAPI-Autodoc"
       }
    },
-   "version" : "0.10"
+   "version" : "0.11"
 }

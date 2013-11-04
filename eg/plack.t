@@ -4,17 +4,12 @@ use strict;
 use warnings;
 use utf8;
 use HTTP::Request::Common;
-use Path::Tiny;
 use Plack::Request;
 
 use Plack::Test;
 
 use Test::More;
 use Test::JsonAPI::Autodoc;
-
-BEGIN {
-    $ENV{TEST_JSONAPI_AUTODOC} = 1;
-}
 
 # Plack App
 my $app = sub {

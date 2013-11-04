@@ -48,8 +48,8 @@ Test::JsonAPI::Autodoc - Test JSON API response and auto generate API documents
         $req->header('Content-Type' => 'application/json');
         $req->content(q{
             {
-            "id": 1,
-            "message": "blah blah"
+                "id": 1,
+                "message": "blah blah"
             }
         });
         plack_ok($test_app, $req, 200, "get message ok");
@@ -116,7 +116,7 @@ The example of `test.t` is as follows.
 The following markdown document are outputted after execution of a test.
 Document will output to `$project\_root/docs/test.md` on default setting.
 
-    generated at: 2013-11-03 22:29:06
+    generated at: 2013-11-04 22:41:10
 
     ## POST /foo
 
@@ -140,7 +140,8 @@ Document will output to `$project\_root/docs/test.md` on default setting.
     ### Response
 
     ```
-    Status: 200
+    Status:       200
+    Content-Type: application/json
     Response:
     {
        "message" : "success"
@@ -221,10 +222,12 @@ Available variables are the followings.
     - result.server
     - result.method
     - result.query
-    - result.content\_type
-    - result.parameters
+    - result.request\_content\_type
+    - result.request\_parameters
+    - result.is\_plack\_app
     - result.status
-    - result.response
+    - result.response\_body
+    - result.response\_content\_type
 
 ### Example
 
@@ -249,12 +252,12 @@ Available variables are the followings.
     :}
     ### Parameters
 
-    : if $result.parameters {
-        : if $result.content_type {
-    __<: $result.content_type :>__
+    : if $result.request_parameters {
+        : if $result.request_content_type {
+    __<: $result.request_content_type :>__
 
         : }
-    : for $result.parameters -> $parameter {
+    : for $result.request_parameters -> $parameter {
     <: $parameter :>
     : }
     : }
@@ -273,13 +276,26 @@ Available variables are the followings.
     ### Response
 
     ```
-    Status: <: $result.status :>
+    Status:       <: $result.status :>
+    Content-Type: <: $result.response_content_type :>
     Response:
-    <: $result.response :>
+    <: $result.response_body :>
     : }
     ```
 
 Template needs to be written by [Text::Xslate::Syntax::Kolon](http://search.cpan.org/perldoc?Text::Xslate::Syntax::Kolon) as looking.
+
+
+
+# FAQ
+
+#### Does this module correspond to JSON-RPC?
+
+Yes. It can use as [https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/json\_rpc.t](https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/json\_rpc.t).
+
+#### Can methods of [Test::More](http://search.cpan.org/perldoc?Test::More) (e.g. `subtest()`) be called in `describe()`?
+
+Yes, of course!
 
 
 

@@ -5,12 +5,16 @@ META.json
 README.md
 cpanfile
 eg/docs/http.md
+eg/docs/json_rpc.md
 eg/docs/plack.md
 eg/http.t
+eg/json_rpc.t
 eg/plack.t
 lib/Test/JsonAPI/Autodoc.pm
 lib/Test/JsonAPI/Autodoc/Markdown.pm
 lib/Test/JsonAPI/Autodoc/Path.pm
+lib/Test/JsonAPI/Autodoc/Request.pm
+lib/Test/JsonAPI/Autodoc/Response.pm
 minil.toml
 t/00_compile.t
 t/01_find_project_root_path.t

@@ -30,11 +30,15 @@ no_index:
 provides:
   Test::JsonAPI::Autodoc:
     file: lib/Test/JsonAPI/Autodoc.pm
-    version: 0.10
+    version: 0.11
   Test::JsonAPI::Autodoc::Markdown:
     file: lib/Test/JsonAPI/Autodoc/Markdown.pm
   Test::JsonAPI::Autodoc::Path:
     file: lib/Test/JsonAPI/Autodoc/Path.pm
+  Test::JsonAPI::Autodoc::Request:
+    file: lib/Test/JsonAPI/Autodoc/Request.pm
+  Test::JsonAPI::Autodoc::Response:
+    file: lib/Test/JsonAPI/Autodoc/Response.pm
 requires:
   Data::Section::Simple: 0
   JSON: 0
@@ -52,4 +56,4 @@ resources:
   bugtracker: https://github.com/moznion/Test-JsonAPI-Autodoc/issues
   homepage: https://github.com/moznion/Test-JsonAPI-Autodoc
   repository: git://github.com/moznion/Test-JsonAPI-Autodoc.git
-version: 0.10
+version: 0.11
