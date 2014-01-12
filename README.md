@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/moznion/Test-JsonAPI-Autodoc.png?branch=master)](https://travis-ci.org/moznion/Test-JsonAPI-Autodoc)
+[![Build Status](https://travis-ci.org/moznion/Test-JsonAPI-Autodoc.png?branch=master)](https://travis-ci.org/moznion/Test-JsonAPI-Autodoc) [![Coverage Status](https://coveralls.io/repos/moznion/Test-JsonAPI-Autodoc/badge.png?branch=master)](https://coveralls.io/r/moznion/Test-JsonAPI-Autodoc?branch=master)
 # NAME
 
 Test::JsonAPI::Autodoc - Test JSON API response and auto generate API documents
@@ -21,7 +21,8 @@ Test::JsonAPI::Autodoc - Test JSON API response and auto generate API documents
                 "message": "blah blah"
             }
         });
-        http_ok($req, 200, "returns response"); # <= Check status whether 200, and generate documents
+        my $res = http_ok($req, 200, "returns response"); # <= Check status whether 200, and generate documents.
+                                                          #    And this test method returns the response as hash reference.
     };
 
     # Can also request application/x-www-form-urlencoded
@@ -76,11 +77,7 @@ Test::JsonAPI::Autodoc - Test JSON API response and auto generate API documents
 
 Test::JsonAPI::Autodoc tests JSON API response (only check status code).
 And it generates API documents according to the response automatically.
-Please refer to ["USAGE"](#USAGE) for details.
-
-__THIS IS A DEVELOPMENT RELEASE. API MAY CHANGE WITHOUT NOTICE.__
-
-
+Please refer to ["USAGE"](#usage) for details.
 
 # USAGE
 
@@ -114,7 +111,7 @@ The example of `test.t` is as follows.
     };
 
 The following markdown document are outputted after execution of a test.
-Document will output to `$project\_root/docs/test.md` on default setting.
+Document will output to `$project_root/docs/test.md` on default setting.
 
     generated at: 2013-11-04 22:41:10
 
@@ -139,10 +136,10 @@ Document will output to `$project\_root/docs/test.md` on default setting.
 
     ### Response
 
-    ```
-    Status:       200
-    Content-Type: application/json
-    Response:
+    - Status:       200
+    - Content-Type: application/json
+
+    ```json
     {
        "message" : "success"
     }
@@ -173,11 +170,39 @@ Please also refer to example ([https://github.com/moznion/Test-JsonAPI-Autodoc/t
 
     When this method is not called at inside of `describe`, documents is not generated.
 
+    And this method returns the response as hash reference.
+
+    Example of response structure;
+
+        $response = {
+            status       => <% status code %>,
+            content_type => <% content type %>,
+            body         => <% response body %>,
+        }
+
+    Moreover if `$note` is hash reference like below, you can describe each request parameters.
+
+        {
+            description => 'get message ok',
+            param_description => {
+                param1 => 'This is param1'
+                param2 => 'This is param2',
+            },
+        }
+
+    `description` is the same as the time of using as <$note> as scalar.
+    `param_description` contains descriptions about request parameters.
+    Now, this faculty only can describe request parameters are belonging to top level.
+    Please refer [https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/http_with_req_params_description.t](https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/http_with_req_params_description.t) and
+    [https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/doc/http_with_req_params_description.md](https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/doc/http_with_req_params_description.md).
+
 - plack\_ok ($plack\_app, $request, $expected\_status\_code, $note)
 
     `plack_ok` method carries out almost the same operation as `http_ok`.
-    This method is for [Plack](http://search.cpan.org/perldoc?Plack) application.
+    This method is for [Plack](https://metacpan.org/pod/Plack) application.
     This method requires plack application as the first argument.
+
+    This method also returns the response as hash reference.
 
 - set\_documents\_path
 
@@ -187,13 +212,13 @@ Please also refer to example ([https://github.com/moznion/Test-JsonAPI-Autodoc/t
 - set\_template
 
     Set the original template. This method require the string.
-    Please refer to ["CUSTOM TEMPLATE"](#CUSTOM TEMPLATE) for details.
+    Please refer to ["CUSTOM TEMPLATE"](#custom-template) for details.
 
 
 
 # REQUIREMENTS
 
-Generated document will output to `$project\_root/docs/` on default setting.
+Generated document will output to `$project_root/docs/` on default setting.
 $project\_root means the directory on which `cpanfile` discovered while going
 back to a root directory from a test script is put.
 Therefore, __it is necessary to put `cpanfile` on a project root__.
@@ -275,15 +300,15 @@ Available variables are the followings.
 
     ### Response
 
-    ```
-    Status:       <: $result.status :>
-    Content-Type: <: $result.response_content_type :>
-    Response:
-    <: $result.response_body :>
-    : }
-    ```
+    - Status:       <: $result.status :>
+    - Content-Type: <: $result.response_content_type :>
 
-Template needs to be written by [Text::Xslate::Syntax::Kolon](http://search.cpan.org/perldoc?Text::Xslate::Syntax::Kolon) as looking.
+    ```json
+    <: $result.response_body :>
+    ```
+    : }
+
+Template needs to be written by [Text::Xslate::Syntax::Kolon](https://metacpan.org/pod/Text::Xslate::Syntax::Kolon) as looking.
 
 
 
@@ -291,9 +316,9 @@ Template needs to be written by [Text::Xslate::Syntax::Kolon](http://search.cpan
 
 #### Does this module correspond to JSON-RPC?
 
-Yes. It can use as [https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/json\_rpc.t](https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/json\_rpc.t).
+Yes. It can use as [https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/json_rpc.t](https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/json_rpc.t).
 
-#### Can methods of [Test::More](http://search.cpan.org/perldoc?Test::More) (e.g. `subtest()`) be called in `describe()`?
+#### Can methods of [Test::More](https://metacpan.org/pod/Test::More) (e.g. `subtest()`) be called in `describe()`?
 
 Yes, of course!
 
@@ -305,13 +330,9 @@ This module is inspired by “autodoc”, which is written by Ruby. That is very
 
 See also [https://github.com/r7kamura/autodoc](https://github.com/r7kamura/autodoc)
 
+# CONTRIBUTORS
 
-
-# NOTE
-
-This module is developing. I think that there is much bug in this module. I am waiting for your report!
-
-
+- Yuuki Tsubouchi (y-uuki)
 
 # LICENSE
 

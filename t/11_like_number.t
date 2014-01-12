@@ -26,26 +26,21 @@ my $bad_res = HTTP::Response->new(400);
 
 Test::Mock::LWP::Conditional->stub_request(
     "http://localhost:3000/foobar" => $ok_res,
-    "/bad"    => $bad_res,
 );
 
-subtest '200 OK' => sub {
+subtest 'request content includes value like number' => sub {
     describe 'POST /foobar' => sub {
         my $req = POST 'http://localhost:3000/foobar';
         $req->header('Content-Type' => 'application/json');
         $req->content(q{
             {
                 "id": 1,
-                "message": "blah blah"
+                "string_id": "1",
+                "ipaddr": "192.168.1.1",
+                "message": "10blah"
             }
         });
-        my $res = http_ok($req, 200, {
-            description => "get message ok",
-            param_description => {
-                id      => 'Some ID',
-                message => 'Yay yay!',
-            },
-        });
+        my $res = http_ok($req, 200, "get message ok");
         is_deeply $res, {
             status       => 200,
             content_type => 'application/json',
@@ -57,25 +52,6 @@ subtest '200 OK' => sub {
         }, 'Response is rightly';
     };
 
-};
-
-subtest '400 Bad Request' => sub {
-    describe 'POST /bad' => sub {
-        my $req = POST '/bad';
-        $req->header('Content-Type' => 'application/json');
-        $req->content(q{
-            {
-                "id": 1,
-                "message": "blah blah"
-            }
-        });
-        my $res = http_ok($req, 400, "get 400 ok");
-        is_deeply $res, {
-            status       => 400,
-            content_type => 'text/plain',
-            body         => "400 URL must be absolute\n",
-        }, 'Response is rightly';
-    };
 };
 
 (my $filename = path($0)->basename) =~ s/\.t$//;
@@ -103,8 +79,10 @@ http://localhost:3000
 
 __application/json__
 
-- `id`: Number (e.g. 1) - Some ID
-- `message`: String (e.g. "blah blah") - Yay yay!
+- `id`: Number (e.g. 1)
+- `ipaddr`: String (e.g. "192.168.1.1")
+- `message`: String (e.g. "10blah")
+- `string_id`: String (e.g. "1")
 
 ### Request
 
@@ -119,31 +97,6 @@ POST /foobar
 {
    "message" : "success"
 }
-
-```
-
-## POST /bad
-
-get 400 ok
-
-### Parameters
-
-__application/json__
-
-- `id`: Number (e.g. 1)
-- `message`: String (e.g. "blah blah")
-
-### Request
-
-POST /bad
-
-### Response
-
-- Status:       400
-- Content-Type: text/plain
-
-```json
-400 URL must be absolute
 
 ```
 

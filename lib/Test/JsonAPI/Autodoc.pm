@@ -19,7 +19,7 @@ our @EXPORT = qw/
     set_template
 /;
 
-our $VERSION = "0.11";
+our $VERSION = "0.20";
 
 my $in_describe;
 my $results;
@@ -57,6 +57,10 @@ sub describe {
 
     my ($description, $coderef) = @_;
 
+    # change location of test failure to be included Test::More's output
+    # to be more helpful to user.
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+
     my $result = Test::More::subtest($description => $coderef);
 
     if ($result && $results && $ENV{TEST_JSONAPI_AUTODOC}) {
@@ -67,16 +71,23 @@ sub describe {
 
 sub http_ok {
     my ($req, $expected_code, $note) = @_;
-    _api_ok($req, $expected_code, $note);
+    return _api_ok($req, $expected_code, $note);
 }
 
 sub plack_ok {
     my ($plack_app, $req, $expected_code, $note) = @_;
-    _api_ok($req, $expected_code, $note, $plack_app);
+    return _api_ok($req, $expected_code, $note, $plack_app);
 }
 
 sub _api_ok {
     my ($req, $expected_code, $note, $plack_app) = @_;
+
+    my $description       = $note;
+    my $param_description = {};
+    if (ref $note eq 'HASH') {
+        $description       = $note->{description};
+        $param_description = $note->{param_description};
+    }
 
     my $res;
     my $is_plack_app = 0;
@@ -89,15 +100,22 @@ sub _api_ok {
         $res = LWP::UserAgent->new->request($req);
     }
 
+    # change location of test failure to be included Test::More's output
+    # to be more helpful to user.
+    local $Test::Builder::Level = $Test::Builder::Level + 2;
+
     my $result = Test::More::is $res->code, $expected_code;
     return unless $result;
     return unless $in_describe;
 
-    my $parsed_request  = Test::JsonAPI::Autodoc::Request->new->parse($req);
+    my $parsed_request  = Test::JsonAPI::Autodoc::Request->new->parse($req, $param_description);
     my $parsed_response = Test::JsonAPI::Autodoc::Response->new->parse($res);
 
+    my $response_body         = $parsed_response->{body};
+    my $response_content_type = $parsed_response->{content_type};
+
     push @$results, {
-        note                  => $note,
+        note                  => $description,
 
         path                  => $parsed_request->{path},
         server                => $parsed_request->{server},
@@ -108,8 +126,14 @@ sub _api_ok {
         is_plack_app          => $is_plack_app,
 
         status                => $expected_code,
-        response_body         => $parsed_response->{body},
-        response_content_type => $parsed_response->{content_type},
+        response_body         => $response_body,
+        response_content_type => $response_content_type,
+    };
+
+    return +{
+        status       => $expected_code,
+        body         => $response_body,
+        content_type => $response_content_type,
     };
 }
 1;
@@ -117,7 +141,7 @@ __END__
 
 =encoding utf-8
 
-=for stopwords autodoc coderef
+=for stopwords autodoc coderef y-uuki
 
 =head1 NAME
 
@@ -140,7 +164,8 @@ Test::JsonAPI::Autodoc - Test JSON API response and auto generate API documents
                 "message": "blah blah"
             }
         });
-        http_ok($req, 200, "returns response"); # <= Check status whether 200, and generate documents
+        my $res = http_ok($req, 200, "returns response"); # <= Check status whether 200, and generate documents.
+                                                          #    And this test method returns the response as hash reference.
     };
 
     # Can also request application/x-www-form-urlencoded
@@ -196,9 +221,6 @@ Test::JsonAPI::Autodoc - Test JSON API response and auto generate API documents
 Test::JsonAPI::Autodoc tests JSON API response (only check status code).
 And it generates API documents according to the response automatically.
 Please refer to L<"USAGE"> for details.
-
-B<THIS IS A DEVELOPMENT RELEASE. API MAY CHANGE WITHOUT NOTICE.>
-
 
 =head1 USAGE
 
@@ -257,10 +279,10 @@ Document will output to F<$project_root/docs/test.md> on default setting.
 
     ### Response
 
-    ```
-    Status:       200
-    Content-Type: application/json
-    Response:
+    - Status:       200
+    - Content-Type: application/json
+
+    ```json
     {
        "message" : "success"
     }
@@ -292,11 +314,39 @@ C<$note> will be note of markdown documents.
 
 When this method is not called at inside of C<describe>, documents is not generated.
 
+And this method returns the response as hash reference.
+
+Example of response structure;
+
+    $response = {
+        status       => <% status code %>,
+        content_type => <% content type %>,
+        body         => <% response body %>,
+    }
+
+Moreover if C<$note> is hash reference like below, you can describe each request parameters.
+
+    {
+        description => 'get message ok',
+        param_description => {
+            param1 => 'This is param1'
+            param2 => 'This is param2',
+        },
+    }
+
+C<description> is the same as the time of using as <$note> as scalar.
+C<param_description> contains descriptions about request parameters.
+Now, this faculty only can describe request parameters are belonging to top level.
+Please refer L<https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/http_with_req_params_description.t> and
+L<https://github.com/moznion/Test-JsonAPI-Autodoc/tree/master/eg/doc/http_with_req_params_description.md>.
+
 =item * plack_ok ($plack_app, $request, $expected_status_code, $note)
 
 C<plack_ok> method carries out almost the same operation as C<http_ok>.
 This method is for L<Plack> application.
 This method requires plack application as the first argument.
+
+This method also returns the response as hash reference.
 
 =item * set_documents_path
 
@@ -418,13 +468,13 @@ Available variables are the followings.
 
     ### Response
 
-    ```
-    Status:       <: $result.status :>
-    Content-Type: <: $result.response_content_type :>
-    Response:
+    - Status:       <: $result.status :>
+    - Content-Type: <: $result.response_content_type :>
+
+    ```json
     <: $result.response_body :>
-    : }
     ```
+    : }
 
 Template needs to be written by L<Text::Xslate::Syntax::Kolon> as looking.
 
@@ -446,11 +496,13 @@ This module is inspired by “autodoc”, which is written by Ruby. That is very
 
 See also L<https://github.com/r7kamura/autodoc>
 
+=head1 CONTRIBUTORS
 
-=head1 NOTE
+=over 4
 
-This module is developing. I think that there is much bug in this module. I am waiting for your report!
+=item * Yuuki Tsubouchi (y-uuki)
 
+=back
 
 =head1 LICENSE
 

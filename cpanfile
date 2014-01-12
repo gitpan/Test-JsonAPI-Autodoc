@@ -6,7 +6,7 @@ requires 'Text::Xslate';
 requires 'Text::Xslate::Bridge::Star';
 requires 'parent';
 requires 'Data::Section::Simple';
-requires 'Path::Tiny';
+requires 'Path::Tiny', '0.051';
 requires 'Time::Piece';
 requires 'URL::Encode';
 requires 'perl', '5.008005';
@@ -21,6 +21,8 @@ on test => sub {
     requires 'HTTP::Request::Common';
     requires 'HTTP::Response';
     requires 'Test::Mock::LWP::Conditional';
+    requires 'Plack::Test';
+    requires 'Plack::Request';
 };
 
 on develop => sub {

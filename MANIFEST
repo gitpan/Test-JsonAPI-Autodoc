@@ -5,9 +5,11 @@ META.json
 README.md
 cpanfile
 eg/docs/http.md
+eg/docs/http_with_req_params_description.md
 eg/docs/json_rpc.md
 eg/docs/plack.md
 eg/http.t
+eg/http_with_req_params_description.t
 eg/json_rpc.t
 eg/plack.t
 lib/Test/JsonAPI/Autodoc.pm
@@ -27,6 +29,9 @@ t/07_http_ok_is_not_in_describe.t
 t/08_plack.t
 t/09_non_json_request_full_url.t
 t/10_not_generate_doc.t
+t/11_like_number.t
+t/12_nullable.t
+t/13_test_builder_level.t
 xt/00_document.t
 xt/local_functions.t
 xt/perlcritic.t

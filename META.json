@@ -4,7 +4,7 @@
       "moznion <moznion@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.8.1",
+   "generated_by" : "Minilla/v0.11.0",
    "license" : [
       "perl_5"
    ],
@@ -50,7 +50,7 @@
             "Data::Section::Simple" : "0",
             "JSON" : "0",
             "LWP::UserAgent" : "0",
-            "Path::Tiny" : "0",
+            "Path::Tiny" : "0.051",
             "Scope::Guard" : "0",
             "Test::More" : "0.98",
             "Text::Xslate" : "0",
@@ -65,6 +65,8 @@
          "requires" : {
             "HTTP::Request::Common" : "0",
             "HTTP::Response" : "0",
+            "Plack::Request" : "0",
+            "Plack::Test" : "0",
             "Test::Mock::LWP::Conditional" : "0"
          }
       }
@@ -72,7 +74,7 @@
    "provides" : {
       "Test::JsonAPI::Autodoc" : {
          "file" : "lib/Test/JsonAPI/Autodoc.pm",
-         "version" : "0.11"
+         "version" : "0.20"
       },
       "Test::JsonAPI::Autodoc::Markdown" : {
          "file" : "lib/Test/JsonAPI/Autodoc/Markdown.pm"
@@ -94,9 +96,12 @@
       },
       "homepage" : "https://github.com/moznion/Test-JsonAPI-Autodoc",
       "repository" : {
-         "url" : "git://github.com/moznion/Test-JsonAPI-Autodoc.git",
+         "url" : "git://github.com/moznion/Test-JsonAPI-Autodoc",
          "web" : "https://github.com/moznion/Test-JsonAPI-Autodoc"
       }
    },
-   "version" : "0.11"
+   "version" : "0.20",
+   "x_contributors" : [
+      "y_uuki <yuki.tsubo@gmail.com>"
+   ]
 }
